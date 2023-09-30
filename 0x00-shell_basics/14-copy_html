@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Get the path to the current working directory
+CWD=$(pwd)
+
+# Get the path to the parent of the working directory
+PWD_PARENT=$(dirname "$CWD")
+
+# Find all the HTML files in the current working directory
+HTML_FILES=$(find "$CWD" -name "*.html")
+
+# Iterate over the HTML files and copy them to the parent of the working directory if they do not exist or are newer than the versions in the parent of the working directory
+for HTML_FILE in $HTML_FILES; do
+  # Get the path to the HTML file in the parent of the working directory
+  HTML_FILE_PARENT="$PWD_PARENT/$HTML_FILE"
+
+  # Check if the HTML file exists in the parent of the working directory
+  if [ ! -f "$HTML_FILE_PARENT" ]; then
+    # The HTML file does not exist in the parent of the working directory, so copy it
+    cp "$HTML_FILE" "$PWD_PARENT"
+  else
+    # The HTML file does exist in the parent of the working directory, so compare the timestamps to see if the file in the current working directory is newer
+    HTML_FILE_TIMESTAMP=$(stat -c %Y "$HTML_FILE")
+    HTML_FILE_PARENT_TIMESTAMP=$(stat -c %Y "$HTML_FILE_PARENT")
+
+    if [ "$HTML_FILE_TIMESTAMP" -gt "$HTML_FILE_PARENT_TIMESTAMP" ]; then
+      # The HTML file in the current working directory is newer, so copy it to the parent of the working directory
+      cp "$HTML_FILE" "$PWD_PARENT"
+    fi
+  fi
+done
